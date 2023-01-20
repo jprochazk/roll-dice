@@ -70,4 +70,5 @@ fn eval_test() {
     u64::MAX,
   );
   check_err("2d5", "Weirdga too many rolls", 1);
+  check_err("1/0", "Weirdga can't divide by zero", u64::MAX);
 }

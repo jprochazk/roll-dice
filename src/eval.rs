@@ -25,6 +25,9 @@ pub fn eval_with_rng(input: Vec<Op>, limit: u64, rng: &dyn Rng) -> Result<i64> {
       }
       Op::Div => {
         let (l, r) = pop2!(stack);
+        if r == 0 {
+          return Err(format!("Weirdga can't divide by zero"));
+        }
         stack.push(l / r);
       }
       Op::Neg => {

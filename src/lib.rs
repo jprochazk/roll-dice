@@ -1,8 +1,8 @@
 #[macro_use]
 mod macros;
-mod eval;
-mod parse;
-mod rng;
+pub mod eval;
+pub mod parse;
+pub mod rng;
 
 pub type Result<T, E = String> = std::result::Result<T, E>;
 
