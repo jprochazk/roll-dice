@@ -1,0 +1,27 @@
+[package]
+name = "roll-dice"
+version = "0.1.0"
+edition = "2021"
+resolver = "2"
+license = "MIT OR Apache-2.0"
+description = "evaluate standard dice roll notation"
+repository = "https://github.com/jprochazk/dice-roll"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+logos = "0.12.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.83"
+console_error_panic_hook = { version = "0.1.6", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.features]
+default = ["console_error_panic_hook"]
+
+[profile.release]
+lto = true
+opt-level = "s"
