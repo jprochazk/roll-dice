@@ -58,7 +58,7 @@ fn roll(times: u64, sides: u64, rng: &dyn Rng) -> Result<i64> {
   let mut sum = 0;
   let mut i = times;
   while i > 0 {
-    sum += rng.range(sides) as i64;
+    sum += (1 + rng.range(sides).saturating_sub(1)) as i64;
     i -= 1;
   }
   Ok(sum)
