@@ -5,7 +5,7 @@ use crate::Result;
 
 pub fn parse(input: &str) -> Result<Vec<Op>> {
   let mut lex = Lexer::new(input);
-  let mut out = Vec::new();
+  let mut out = Vec::with_capacity(64);
   parse_expr(&mut lex, &mut out)?;
   Ok(out)
 }
@@ -94,9 +94,9 @@ fn parse_primary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
   }
 
   if lex.check(Token::Eof) {
-    Err(format!("Weirdga missing input"))
+    Err(format!("missing input"))
   } else {
-    Err(format!("Weirdga 👉 `{}` ❓", lex.slice()))
+    Err(format!("👉 `{}` ❓", lex.slice()))
   }
 }
 
@@ -139,7 +139,7 @@ impl<'a> Lexer<'a> {
     if self.bump_if(t)? {
       Ok(())
     } else {
-      Err(format!("Weirdga missing `{}`", t))
+      Err(format!("missing `{}`", t))
     }
   }
 
@@ -158,7 +158,7 @@ impl<'a> Lexer<'a> {
       while matches!(self.inner.next().unwrap_or(self.eof), Token::Error) {
         error_span = join_spans(error_span, self.inner.span());
       }
-      return Err(format!("Weirdga 👉 `{}` ❓", &self.input[error_span]));
+      return Err(format!("👉 `{}` ❓", &self.input[error_span]));
     }
     Ok(&self.previous)
   }
@@ -223,7 +223,5 @@ fn join_spans(a: Range<usize>, b: Range<usize>) -> Range<usize> {
 }
 
 fn parse_int(slice: &str) -> Result<i64, String> {
-  slice
-    .parse()
-    .map_err(|_| format!("Weirdga 👉 `{}` ❓", slice))
+  slice.parse().map_err(|_| format!("👉 `{}` ❓", slice))
 }

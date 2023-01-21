@@ -29,10 +29,10 @@ fn parse_test() {
   check("10 d ( 50 + 50 )", ops![10, 50, 50, Add, Dice]);
   check("10 + 5 * 5", ops![10, 5, 5, Mul, Add]);
   check("10 * 5 + 5", ops![10, 5, Mul, 5, Add]);
-  check_err("10 * *", "Weirdga 👉 `*` ❓");
-  check_err("10 * (", "Weirdga missing input");
-  check_err("10 * (10", "Weirdga missing `)`");
-  check_err("10 * asd", "Weirdga 👉 `as` ❓");
+  check_err("10 * *", "👉 `*` ❓");
+  check_err("10 * (", "missing input");
+  check_err("10 * (10", "missing `)`");
+  check_err("10 * asd", "👉 `as` ❓");
 }
 
 #[test]
@@ -63,12 +63,8 @@ fn eval_test() {
   check("10 d ( 50 + 50 )", 10 * 50);
   check("10 + 5 * 5", 35);
   check("10 * 5 + 5", 55);
-  check_err("(-1)d1", "Weirdga can't roll less than 0 times", u64::MAX);
-  check_err(
-    "10d(-1)",
-    "Weirdga can't roll a less than 0-sided die",
-    u64::MAX,
-  );
-  check_err("2d5", "Weirdga too many rolls", 1);
-  check_err("1/0", "Weirdga can't divide by zero", u64::MAX);
+  check_err("(-1)d1", "can't roll less than 0 times", u64::MAX);
+  check_err("10d(-1)", "can't roll a less than 0-sided die", u64::MAX);
+  check_err("2d5", "too many rolls", 1);
+  check_err("1/0", "can't divide by zero", u64::MAX);
 }

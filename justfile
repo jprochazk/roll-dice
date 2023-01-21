@@ -1,8 +1,7 @@
 set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
-@build:
-  wasm-pack build --target nodejs --release --scope jprochazk
+@build *ARGS:
+  wasm-pack build --target nodejs --release --scope jprochazk {{ARGS}}
 
-@publish:
-  just build
-  wasm-pack publish --access=public
+@publish *ARGS:
+  wasm-pack publish --access=public {{ARGS}}

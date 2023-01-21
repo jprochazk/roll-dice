@@ -1,6 +1,6 @@
 [package]
 name = "roll-dice"
-version = "0.2.0"
+version = "0.2.2"
 edition = "2021"
 resolver = "2"
 license = "MIT OR Apache-2.0"
@@ -25,3 +25,10 @@ default = ["console_error_panic_hook"]
 [profile.release]
 lto = true
 opt-level = "s"
+
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "basic"
+harness = false
