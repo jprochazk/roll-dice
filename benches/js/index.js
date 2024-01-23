@@ -1,4 +1,4 @@
-import { roll as RollDice } from "roll-dice";
+import { roll as RollDice } from "@jprochazk/roll-dice";
 import DiceRollEval from "dice-roll-eval";
 import b from "benny";
 

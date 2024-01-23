@@ -10,7 +10,7 @@
   "dependencies": {
     "benny": "^3.7.1",
     "dice-roll-eval": "github:jprochazk/dice-roll-eval",
-    "roll-dice": "file:../../pkg"
+    "@jprochazk/roll-dice": "^0.2.2"
   },
   "author": "",
   "license": "ISC"

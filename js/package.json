@@ -1,0 +1,42 @@
+{
+  "name": "@jprochazk/roll-dice",
+  "description": "evaluate standard dice roll notation",
+  "version": "0.3.2",
+  "license": "MIT OR Apache-2.0",
+  "author": "jprochazk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jprochazk/dice-roll"
+  },
+  "scripts": {
+    "build": "npm run build:types",
+    "build:types": "dts-buddy",
+    "prepublishOnly": "tsc --noEmit && dts-buddy"
+  },
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "files": [
+    "wasm/roll_dice_bg.wasm",
+    "wasm/roll_dice_bg.wasm.d.ts",
+    "wasm/roll_dice.d.ts",
+    "wasm/roll_dice.js",
+    "index.d.ts",
+    "index.d.ts.map",
+    "index.js",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "devDependencies": {
+    "dts-buddy": "^0.4.4",
+    "typescript": "^5.3.3"
+  }
+}
+
