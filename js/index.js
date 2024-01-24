@@ -10,25 +10,31 @@ const { roll: rollDice } = require("./wasm/roll_dice.js");
  * * rng - The random number generator used in dice rolls. Default implementation uses Math.random
  * * strict - Enable strict mode. Default is `true`.
  *
- * In strict mode, this function throws an error when it fails to parse or evaluate the expression.
+ * If strict mode is enabled, this function throws an error when it fails to parse or evaluate the expression.
  * If strict mode is disabled, it returns `null` in that case.
  *
  * @template {boolean} [Strict=true]
  * @param {string} input
- * @param {{ seed: bigint, limit: bigint, strict?: Strict }} options
+ * @param {{
+ *   limit: number | bigint,
+ *   seed: number | bigint,
+ *   strict?: Strict
+ * }} options
  * @returns {Strict extends true ? bigint : bigint | null}
  * @throws
  */
-function roll(input, { seed, limit, strict }) {
+function roll(input, options) {
   /** @type {Strict extends true ? bigint : bigint | null} */
   let result;
   try {
-    result = /** @type {any} */ (rollDice(input, seed, limit));
+    // @ts-expect-error: cant assign to a conditional type
+    result = rollDice(input, BigInt(options.seed), BigInt(options.limit));
   } catch (e) {
-    if (strict) {
+    if (options.strict) {
       throw e;
     } else {
-      result = /** @type {any} */ (null);
+      // @ts-expect-error: cant assign to a conditional type
+      result = null;
     }
   }
   return result;

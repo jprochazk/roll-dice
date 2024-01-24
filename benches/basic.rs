@@ -8,6 +8,12 @@ fn basic_usage(c: &mut Criterion) {
       black_box(value);
     })
   });
+  c.bench_function("roll big expr", |b| {
+    b.iter(|| {
+      let value = roll("10*(10/(10*(10/(10*(10/(10*(10/(10*(10/(10*(10/(10*(10/(10*(10/(10*(10/(10*(10/10)))))))))))))))))))", 1423, u64::MAX).unwrap();
+      black_box(value);
+    })
+  });
 }
 
 criterion_group!(benches, basic_usage);

@@ -1,5 +1,6 @@
+use crate::error::Error;
+use crate::eval::Op;
 use crate::eval::Op::*;
-use crate::eval::{eval_with_rng, Op};
 use crate::parse::parse;
 use crate::rng::FakeRng;
 
@@ -11,12 +12,12 @@ fn parse_test() {
 
   #[track_caller]
   fn check(input: &str, ops: &[Op]) {
-    assert_eq!(parse(input).unwrap(), ops)
+    assert_eq!(parse(input).unwrap().ops, ops)
   }
 
   #[track_caller]
   fn check_err(input: &str, err: &str) {
-    assert_eq!(parse(input).unwrap_err(), err)
+    assert_eq!(parse(input).unwrap_err(), Error::new(err))
   }
 
   check("10 + 5", ops![10, 5, Add]);
@@ -29,10 +30,10 @@ fn parse_test() {
   check("10 d ( 50 + 50 )", ops![10, 50, 50, Add, Dice]);
   check("10 + 5 * 5", ops![10, 5, 5, Mul, Add]);
   check("10 * 5 + 5", ops![10, 5, Mul, 5, Add]);
-  check_err("10 * *", "👉 `*` ❓");
-  check_err("10 * (", "missing input");
-  check_err("10 * (10", "missing `)`");
-  check_err("10 * asd", "👉 `as` ❓");
+  check_err("10 * *", "unexpected input: \"*\"");
+  check_err("10 * (", "unexpected end of input");
+  check_err("10 * (10", "expected \")\", got end of input");
+  check_err("10 * asd", "unexpected input: \"as\"");
 }
 
 #[test]
@@ -40,16 +41,16 @@ fn eval_test() {
   #[track_caller]
   fn check(input: &str, result: i64) {
     assert_eq!(
-      eval_with_rng(parse(input).unwrap(), u64::MAX, &FakeRng).unwrap(),
-      result
+      parse(input).and_then(|roll| roll.eval_with_rng(u64::MAX, &FakeRng)),
+      Ok(result)
     )
   }
 
   #[track_caller]
   fn check_err(input: &str, err: &str, limit: u64) {
     assert_eq!(
-      eval_with_rng(parse(input).unwrap(), limit, &FakeRng).unwrap_err(),
-      err
+      parse(input).and_then(|roll| roll.eval_with_rng(limit, &FakeRng)),
+      Err(Error::new(err))
     )
   }
 

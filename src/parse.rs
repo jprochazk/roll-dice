@@ -1,21 +1,100 @@
 use std::ops::Range;
 
-use crate::eval::Op;
-use crate::Result;
+use crate::error::{Error, Result};
+use crate::eval::{Op, Roll};
 
-pub fn parse(input: &str) -> Result<Vec<Op>> {
+impl Roll {
+  fn builder() -> RollBuilder {
+    RollBuilder {
+      ops: Vec::with_capacity(64),
+      stack: Stack::default(),
+    }
+  }
+}
+
+struct RollBuilder {
+  ops: Vec<Op>,
+  stack: Stack,
+}
+
+impl RollBuilder {
+  fn finish(self) -> Roll {
+    Roll {
+      ops: self.ops,
+      stack_size: self.stack.max,
+    }
+  }
+
+  fn emit(&mut self, op: Op) {
+    op.stack_effects(&mut self.stack);
+    self.ops.push(op);
+  }
+}
+
+impl Op {
+  fn stack_effects(&self, stack: &mut Stack) {
+    match self {
+      Op::Num(_) => {
+        stack.push(1);
+      }
+      Op::Add => {
+        stack.pop(2);
+        stack.push(1);
+      }
+      Op::Sub => {
+        stack.pop(2);
+        stack.push(1);
+      }
+      Op::Mul => {
+        stack.pop(2);
+        stack.push(1);
+      }
+      Op::Div => {
+        stack.pop(2);
+        stack.push(1);
+      }
+      Op::Neg => {
+        stack.pop(1);
+        stack.push(1);
+      }
+      Op::Dice => {
+        stack.pop(2);
+        stack.push(1);
+      }
+    }
+  }
+}
+
+#[derive(Default)]
+struct Stack {
+  current: usize,
+  max: usize,
+}
+
+impl Stack {
+  fn push(&mut self, n: usize) {
+    self.current += n;
+    self.max = std::cmp::max(self.max, self.current);
+  }
+
+  fn pop(&mut self, n: usize) {
+    self.current -= n;
+  }
+}
+
+pub fn parse(input: &str) -> Result<Roll> {
   let mut lex = Lexer::new(input);
-  let mut out = Vec::with_capacity(64);
-  parse_expr(&mut lex, &mut out)?;
-  Ok(out)
+  let mut roll = Roll::builder();
+  parse_expr(&mut lex, &mut roll)?;
+  Ok(roll.finish())
 }
 
-fn parse_expr(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
-  parse_term(lex, out)
+fn parse_expr(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
+  parse_term(lex, roll)
 }
 
-fn parse_term(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
-  parse_factor(lex, out)?;
+fn parse_term(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
+  parse_factor(lex, roll)?;
   loop {
     let op = match lex.current() {
       Token::Plus => Op::Add,
@@ -23,14 +102,14 @@ fn parse_term(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
       _ => break,
     };
     lex.bump()?;
-    parse_factor(lex, out)?;
-    out.push(op);
+    parse_factor(lex, roll)?;
+    roll.ops.push(op);
   }
   Ok(())
 }
 
-fn parse_factor(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
-  parse_prefix(lex, out)?;
+fn parse_factor(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
+  parse_prefix(lex, roll)?;
   loop {
     let op = match lex.current() {
       Token::Star => Op::Mul,
@@ -38,44 +117,44 @@ fn parse_factor(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
       _ => break,
     };
     lex.bump()?;
-    parse_prefix(lex, out)?;
-    out.push(op);
+    parse_prefix(lex, roll)?;
+    roll.emit(op);
   }
   Ok(())
 }
 
-fn parse_prefix(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
+fn parse_prefix(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
   if lex.bump_if(Token::Minus)? {
-    parse_dice_unary(lex, out)?;
-    out.push(Op::Neg);
+    parse_dice_unary(lex, roll)?;
+    roll.emit(Op::Neg);
     return Ok(());
   }
-  parse_dice_unary(lex, out)
+  parse_dice_unary(lex, roll)
 }
 
-fn parse_dice_unary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
+fn parse_dice_unary(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
   if lex.bump_if(Token::Dice)? {
-    out.push(Op::Num(1));
-    parse_primary(lex, out)?;
-    out.push(Op::Dice);
+    roll.emit(Op::Num(1));
+    parse_primary(lex, roll)?;
+    roll.emit(Op::Dice);
     return Ok(());
   }
-  parse_dice_binary(lex, out)
+  parse_dice_binary(lex, roll)
 }
 
-fn parse_dice_binary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
-  parse_primary(lex, out)?;
+fn parse_dice_binary(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
+  parse_primary(lex, roll)?;
   if lex.bump_if(Token::Dice)? {
-    parse_primary(lex, out)?;
-    out.push(Op::Dice)
+    parse_primary(lex, roll)?;
+    roll.emit(Op::Dice)
   }
   Ok(())
 }
 
-fn parse_primary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
+fn parse_primary(lex: &mut Lexer, roll: &mut RollBuilder) -> Result<()> {
   if lex.check(Token::Number) {
     lex.bump()?;
-    out.push(Op::Num(parse_int(lex.prev_slice())?));
+    roll.emit(Op::Num(parse_int(lex.prev_slice())?));
     return Ok(());
   }
 
@@ -85,7 +164,7 @@ fn parse_primary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
       n += 1;
     }
 
-    parse_expr(lex, out)?;
+    parse_expr(lex, roll)?;
 
     for _ in 0..n {
       lex.expect(Token::ParenR)?;
@@ -94,9 +173,9 @@ fn parse_primary(lex: &mut Lexer, out: &mut Vec<Op>) -> Result<()> {
   }
 
   if lex.check(Token::Eof) {
-    Err(format!("missing input"))
+    Err(Error::new("unexpected end of input"))
   } else {
-    Err(format!("👉 `{}` ❓", lex.slice()))
+    Err(Error::new(format!("unexpected input: {:?}", lex.slice())))
   }
 }
 
@@ -124,7 +203,7 @@ impl<'a> Lexer<'a> {
   }
 
   fn slice(&self) -> &str {
-    &self.input[self.inner.span()]
+    self.inner.slice()
   }
 
   fn prev_slice(&self) -> &str {
@@ -139,7 +218,13 @@ impl<'a> Lexer<'a> {
     if self.bump_if(t)? {
       Ok(())
     } else {
-      Err(format!("missing `{}`", t))
+      let s = self.slice();
+      let e = if s.trim().is_empty() {
+        Error::new(format!("expected {:?}, got end of input", t.as_str()))
+      } else {
+        Error::new(format!("expected {:?}, got {s:?}", t.as_str()))
+      };
+      Err(e)
     }
   }
 
@@ -158,7 +243,10 @@ impl<'a> Lexer<'a> {
       while matches!(self.inner.next().unwrap_or(self.eof), Token::Error) {
         error_span = join_spans(error_span, self.inner.span());
       }
-      return Err(format!("👉 `{}` ❓", &self.input[error_span]));
+      return Err(Error::new(format!(
+        "unexpected input: {:?}",
+        &self.input[error_span]
+      )));
     }
     Ok(&self.previous)
   }
@@ -186,6 +274,13 @@ enum Token {
   #[token("d")]
   Dice,
 
+  #[token("~")]
+  RangeTilde,
+  #[token("..")]
+  RangeDot2,
+  #[token("...")]
+  RangeDot3,
+
   #[token("(")]
   ParenL,
   #[token(")")]
@@ -200,21 +295,29 @@ enum Token {
   Eof,
 }
 
-impl std::fmt::Display for Token {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let str = match self {
+impl Token {
+  fn as_str(&self) -> &'static str {
+    match self {
       Token::Plus => "+",
       Token::Minus => "-",
       Token::Star => "*",
       Token::Slash => "/",
       Token::Dice => "d",
+      Token::RangeTilde => "~",
+      Token::RangeDot2 => "..",
+      Token::RangeDot3 => "...",
       Token::ParenL => "(",
       Token::ParenR => ")",
       Token::Number => "number",
       Token::Error => "<error>",
       Token::Eof => "<eof>",
-    };
-    write!(f, "{str}")
+    }
+  }
+}
+
+impl std::fmt::Display for Token {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.as_str())
   }
 }
 
@@ -222,6 +325,9 @@ fn join_spans(a: Range<usize>, b: Range<usize>) -> Range<usize> {
   a.start..b.end
 }
 
-fn parse_int(slice: &str) -> Result<i64, String> {
-  slice.parse().map_err(|_| format!("👉 `{}` ❓", slice))
+fn parse_int(v: &str) -> Result<i64> {
+  match v.parse() {
+    Ok(v) => Ok(v),
+    Err(e) => Err(Error::new(format!("invalid integer {v:?}: {e}"))),
+  }
 }
