@@ -1,7 +1,7 @@
 {
   "name": "@jprochazk/roll-dice",
   "description": "evaluate standard dice roll notation",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "license": "MIT OR Apache-2.0",
   "author": "jprochazk",
   "repository": {
@@ -35,8 +35,7 @@
     "tsconfig.json"
   ],
   "devDependencies": {
-    "dts-buddy": "^0.4.4",
-    "typescript": "^5.3.3"
+    "dts-buddy": "^0.5.1",
+    "typescript": "^5.5.3"
   }
 }
-

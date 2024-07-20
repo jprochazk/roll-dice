@@ -14,8 +14,10 @@ declare module '@jprochazk/roll-dice' {
 	export function roll<Strict extends boolean = true>(input: string, options: {
 		limit: number | bigint;
 		seed: number | bigint;
-		strict?: Strict | undefined;
+		strict?: Strict;
 	}): Strict extends true ? bigint : bigint | null;
+
+	export {};
 }
 
 //# sourceMappingURL=index.d.ts.map
