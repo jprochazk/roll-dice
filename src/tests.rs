@@ -2,7 +2,7 @@ use crate::error::Error;
 use crate::eval::Op;
 use crate::eval::Op::*;
 use crate::parse::parse;
-use crate::rng::FakeRng;
+use crate::rng::fake;
 
 #[test]
 fn parse_test() {
@@ -41,7 +41,7 @@ fn eval_test() {
   #[track_caller]
   fn check(input: &str, result: i64) {
     assert_eq!(
-      parse(input).and_then(|roll| roll.eval_with_rng(u64::MAX, &FakeRng)),
+      parse(input).and_then(|roll| roll.eval_with_rng(u64::MAX, &fake(None))),
       Ok(result)
     )
   }
@@ -49,7 +49,7 @@ fn eval_test() {
   #[track_caller]
   fn check_err(input: &str, err: &str, limit: u64) {
     assert_eq!(
-      parse(input).and_then(|roll| roll.eval_with_rng(limit, &FakeRng)),
+      parse(input).and_then(|roll| roll.eval_with_rng(limit, &fake(None))),
       Err(Error::new(err))
     )
   }
@@ -58,10 +58,10 @@ fn eval_test() {
   check("10 - 5", 5);
   check("10 * 5", 50);
   check("10 / 5", 2);
-  check("10 d 5", 10 * 2);
+  check("10 d 5", 10 * 3);
   check("- 5", -5);
-  check("d 5", 2);
-  check("10 d ( 50 + 50 )", 10 * 50);
+  check("d 5", 3);
+  check("10 d ( 50 + 50 )", 10 * 51);
   check("10 + 5 * 5", 35);
   check("10 * 5 + 5", 55);
   check_err("(-1)d1", "can't roll less than 0 times", u64::MAX);

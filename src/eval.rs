@@ -1,3 +1,5 @@
+use std::num::NonZeroU64;
+
 use crate::error::{Error, Result};
 use crate::rng::{BasicRng, Rng};
 
@@ -56,23 +58,17 @@ impl Roll {
         }
         Op::Add => {
           let (l, r) = pop!(2);
-          let result = l
-            .checked_add(r)
-            .ok_or_else(|| Error::new("number overflowed"))?;
+          let result = l.checked_add(r).ok_or_else(Error::overflow)?;
           push!(result);
         }
         Op::Sub => {
           let (l, r) = pop!(2);
-          let result = l
-            .checked_sub(r)
-            .ok_or_else(|| Error::new("number overflowed"))?;
+          let result = l.checked_sub(r).ok_or_else(Error::overflow)?;
           push!(result);
         }
         Op::Mul => {
           let (l, r) = pop!(2);
-          let result = l
-            .checked_mul(r)
-            .ok_or_else(|| Error::new("number overflowed"))?;
+          let result = l.checked_mul(r).ok_or_else(Error::overflow)?;
           push!(result);
         }
         Op::Div => {
@@ -91,15 +87,15 @@ impl Roll {
         Op::Dice => {
           let (times, sides) = pop!(2);
           if times < 0 {
-            return Err(Error::new("can't roll less than 0 times"));
+            return Err(Error::roll_min_times());
           }
           let times = times as u64;
           if sides < 0 {
-            return Err(Error::new("can't roll a less than 0-sided die"));
+            return Err(Error::roll_min_sides());
           }
           let sides = sides as u64;
           if times > limit {
-            return Err(Error::new("too many rolls"));
+            return Err(Error::too_many_rolls());
           }
           let result = roll(times, sides, rng)?;
           push!(result);
@@ -112,11 +108,20 @@ impl Roll {
 }
 
 fn roll(times: u64, sides: u64, rng: &dyn Rng) -> Result<i64> {
+  if times == 0 {
+    return Ok(0);
+  }
+
+  let Some(sides) = NonZeroU64::new(sides) else {
+    return Ok(0);
+  };
+
   let mut sum = 0i64;
   for _ in 0..times {
-    sum = sum
-      .checked_add((1 + rng.range(sides).saturating_sub(1)) as i64)
-      .ok_or_else(|| Error::new("number overflowed"))?;
+    let value: i64 = rng.range(sides).try_into().map_err(|_| Error::overflow())?;
+    let value = value.checked_add(1i64).ok_or_else(Error::overflow)?;
+
+    sum = sum.checked_add(value).ok_or_else(Error::overflow)?;
   }
   Ok(sum)
 }
@@ -135,5 +140,39 @@ pub enum Op {
 impl From<i64> for Op {
   fn from(value: i64) -> Self {
     Op::Num(value)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_rolls() {
+    macro_rules! roll {
+      (seed $seed:literal, $times:literal d $sides:literal = $result:literal) => {
+        assert_eq!(
+          roll($times, $sides, &$crate::rng::fake(Some($seed))),
+          Ok($result),
+          "failed to eval {}d{} with seed {}",
+          $times,
+          $sides,
+          $seed,
+        )
+      };
+    }
+
+    roll!(seed 0, 0 d 0 = 0);
+    roll!(seed 0, 1 d 0 = 0);
+    roll!(seed 0, 0 d 1 = 0);
+
+    roll!(seed 0, 1 d 1    = 1);
+    roll!(seed 0, 1 d 2    = 1);
+
+    roll!(seed 0,    1 d 1000 = 1);
+    roll!(seed 1000, 1 d 1000 = 1000);
+
+    roll!(seed 0,    2 d 1000 = 2);
+    roll!(seed 1000, 2 d 1000 = 2000);
   }
 }

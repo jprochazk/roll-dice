@@ -1,21 +1,36 @@
 use std::cell::Cell;
+use std::num::NonZeroU64;
 
 pub trait Rng {
-  fn range(&self, max: u64) -> u64;
+  /// Returns a value in the range `0..max`
+  fn range(&self, max: NonZeroU64) -> u64;
 }
 
-pub struct FakeRng;
+pub struct FakeRng {
+  /// When set, the rng always returns `min(value, max-1)`,
+  /// otherwise it returns the center of the range.
+  value: Option<u64>,
+}
+
+pub fn fake(value: Option<u64>) -> FakeRng {
+  FakeRng { value }
+}
 
 impl Rng for FakeRng {
-  fn range(&self, max: u64) -> u64 {
-    max / 2
+  fn range(&self, max: NonZeroU64) -> u64 {
+    let max = max.get();
+    match self.value {
+      Some(v) => std::cmp::min(v, max - 1),
+      None => max / 2,
+    }
   }
 }
 
 pub struct BasicRng(Cell<u64>);
 
 impl Rng for BasicRng {
-  fn range(&self, max: u64) -> u64 {
+  fn range(&self, max: NonZeroU64) -> u64 {
+    let max = max.get();
     // Adapted from: https://lemire.me/blog/2016/06/30/fast-random-shuffling/
     let mut r = self.u64();
     let mut hi = mul_high_u64(r, max);
