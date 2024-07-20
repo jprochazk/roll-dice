@@ -8,3 +8,6 @@ set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 @publish *ARGS:
   npm publish --prefix=js --access=public
+
+@cli:
+  cargo run -p roll

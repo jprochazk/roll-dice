@@ -1,7 +1,7 @@
 use std::num::NonZeroU64;
 
 use crate::error::{Error, Result};
-use crate::rng::{BasicRng, Rng};
+use crate::rng::{Prng, Rng};
 
 #[derive(Debug)]
 pub struct Roll {
@@ -11,7 +11,7 @@ pub struct Roll {
 
 impl Roll {
   pub fn eval(&self, seed: u64, limit: u64) -> Result<i64> {
-    let rng = BasicRng::new(seed);
+    let rng = Prng::new(seed);
     self.eval_with_rng(limit, &rng)
   }
 
@@ -174,5 +174,8 @@ mod tests {
 
     roll!(seed 0,    2 d 1000 = 2);
     roll!(seed 1000, 2 d 1000 = 2000);
+
+    roll!(seed 0,    100 d 5 = 100);
+    roll!(seed 100,  100 d 5 = 500);
   }
 }
