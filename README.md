@@ -3,7 +3,7 @@
 Evaluate standard dice roll notation.
 
 ```
-$ npm i roll-dice@npm:jprochazk/roll-dice
+$ npm i roll-dice@npm:@jprochazk/roll-dice
 ```
 
 ```js
