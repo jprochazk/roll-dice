@@ -5,8 +5,14 @@ use roll_dice::rng::Prng;
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Result};
 
+fn random() -> u64 {
+  let mut bytes = [0u8; 8];
+  getrandom::getrandom(&mut bytes).unwrap();
+  u64::from_le_bytes(bytes)
+}
+
 fn main() -> Result<()> {
-  let mut seed = rand::random();
+  let mut seed = random();
   let mut rng = Prng::new(seed);
 
   // `()` can be used when no completer is required
@@ -32,7 +38,7 @@ fn main() -> Result<()> {
             rng = Prng::new(seed);
           }
           Command::SetSeed(None) => {
-            rng = Prng::new(rand::random());
+            rng = Prng::new(random());
           }
           Command::Eval(roll) => match roll.eval_with_rng(u64::MAX, &rng) {
             Ok(value) => println!("{value}"),

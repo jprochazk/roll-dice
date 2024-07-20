@@ -8,3 +8,4 @@ roll-dice.workspace = true
 rustyline = "14.0.0"
 rand.workspace = true
 anyhow = "1.0.86"
+getrandom = "0.2.15"

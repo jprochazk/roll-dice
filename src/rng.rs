@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::num::NonZeroU64;
 
-use rand::rngs::StdRng;
+use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
 pub trait Rng {
@@ -30,7 +30,7 @@ impl Rng for FakeRng {
 }
 
 pub struct Prng {
-  inner: RefCell<StdRng>,
+  inner: RefCell<SmallRng>,
 }
 
 impl Rng for Prng {
@@ -44,7 +44,7 @@ impl Rng for Prng {
 impl Prng {
   pub fn new(seed: u64) -> Self {
     Prng {
-      inner: RefCell::new(StdRng::seed_from_u64(seed)),
+      inner: RefCell::new(SmallRng::seed_from_u64(seed)),
     }
   }
 }

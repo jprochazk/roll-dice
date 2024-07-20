@@ -3,7 +3,7 @@ members = ["bin/roll"]
 
 [workspace.dependencies]
 roll-dice = { path = "." }
-rand = "0.8.5"
+rand = { version = "0.8.5", default-features = false }
 
 [package]
 name = "roll-dice"
@@ -21,7 +21,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 logos = "0.12.1"
-rand.workspace = true
+rand = { workspace = true, features = ["small_rng"] }
 
 wasm-bindgen = "0.2.83"
 console_error_panic_hook = { version = "0.1.6", optional = true }
