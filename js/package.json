@@ -1,7 +1,7 @@
 {
   "name": "@jprochazk/roll-dice",
   "description": "evaluate standard dice roll notation",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "license": "MIT OR Apache-2.0",
   "author": "jprochazk",
   "repository": {
@@ -18,7 +18,8 @@
   "exports": {
     ".": {
       "types": "./index.d.ts",
-      "import": "./index.js"
+      "import": "./index.js",
+      "require": "./index.js"
     }
   },
   "files": [
@@ -39,3 +40,4 @@
     "typescript": "^5.5.3"
   }
 }
+
