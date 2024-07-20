@@ -3,11 +3,11 @@
 Evaluate standard dice roll notation.
 
 ```
-$ npm i roll-dice@npm:@jprochazk/roll-dice
+$ npm i @jprochazk/roll-dice
 ```
 
 ```js
-import { roll } from "roll-dice";
+import { roll } from "@jprochazk/roll-dice";
 
 roll("5d6") // roll a 6-sided die 5 times.
 roll("5d6 + 10") // roll a 6-sided die 5 times, and add 10 to the result.
